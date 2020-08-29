@@ -88,9 +88,10 @@ step함수에서는 action을 리턴하며 한번에 1개의 action밖에 수행
 1. obs.observation.raw_unit에서 unit의 종류로 분류할 수도, 유닛이 아군인지 적인지 여부로 분리시킬 수 있습니다.  
 2. 유닛각각이 가진 속성을 이용하여 action을 정할 수 있습니다.
 3. tag는 차후 유닛을 식별하기위한 고유키입니다.
+4. attack은 tag를 매개변수로  marines는 받아올때부터 tag만 배열에 넣었습니다
 
 ### 강화학습에 사용하기 유리한 state
-공식코드 state 정의 부분 https://github.com/deepmind/pysc2/blob/master/pysc2/lib/features.py#L171#L218
+- 공식코드 state 정의 부분 https://github.com/deepmind/pysc2/blob/master/pysc2/lib/features.py#L171#L218
 > 필수적인 변수를 추려보았습니다.
 ```
 health              # 채력
@@ -103,8 +104,8 @@ weapon_cooldown     # 무기 쿨다운
 ```
 
 ### 강화학습에 사용하기 유리한 action
-공식코드 action 정의 부분 https://github.com/deepmind/pysc2/blob/master/pysc2/lib/actions.py#L583#L1165 
-공식코드 action-raw 정의 부분 https://github.com/deepmind/pysc2/blob/master/pysc2/lib/actions.py#L1186#L1751
+- 공식코드 action 정의 부분 https://github.com/deepmind/pysc2/blob/master/pysc2/lib/actions.py#L583#L1165 
+- 공식코드 action-raw 정의 부분 https://github.com/deepmind/pysc2/blob/master/pysc2/lib/actions.py#L1186#L1751
 > 미니게임에서 필수적인 변수를 추려보았습니다. (매개변수는 공식코드에서 찾아가면서 보기)
 ```
 *raw action*
@@ -114,5 +115,18 @@ Move_unit       # 유닛 움직임
 Attack_screen   # 스크린상에서 공격
 Move_screen     # 스크린상에서 유닛움직임
 ```
+일반코드와 raw코드의 차이는 일반은 실제 사람이 하는것처럼 화면정보를 기준으로 state와 action을 진행하지만 raw는 더 구체적인 실제 게임내의 변수값을 이용할 수 있습니다 ex) x,y좌표
 
 ## step 4
+그럼이제 약간의 디테일을 추가해서 만들어 봅시다!
+```
+zerglings = [unit for unit in obs.observation.raw_units if unit.unit_type == units.Zerg.Zergling]
+banelings = [unit for unit in obs.observation.raw_units if unit.unit_type == units.Zerg.Baneling]
+```
+위는 저글링과 맹독충을 식별하는 코드입니다. 맹독충은 상대에게 부딛쳐 터지는 방법으로 넓은 범위 피해를 입히기 때문에 저글링보다 더 위험 할 수 있습니다.  
+그렇기 때문에 다르게 취급해주도록 합시다.
+```
+target = sorted(enemys, key=lambda r: r.y)[0].tag
+```
+우리는 이전에 위 코드로 y값이 가장적은 적을 골라냈습니다. 하지만 이 방법은 전혀 효과적이지 못합니다.  
+그렇기 때문에 가장 가까운 적을 공격하게 만들어 보면 어떨까요?
