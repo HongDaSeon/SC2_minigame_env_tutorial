@@ -100,6 +100,7 @@ shield              # 프로토스 유닛의 경우 쉴드도 필요함
 x                   # x좌표
 y                   # y좌표
 tag                 # 식별자
+active              # 현재 수행하고 있는 작업 여부 (0, 1)
 weapon_cooldown     # 무기 쿨다운
 ```
 
@@ -110,7 +111,7 @@ weapon_cooldown     # 무기 쿨다운
 ```
 *raw action*
 Attack_unit     # 유닛공격
-Move_unit       # 유닛 움직임
+Move_pt         # 유닛 좌표로움직임 (뭐 약자인지 모르겠는데 디버깅하다보니까 됨)
 *action*
 Attack_screen   # 스크린상에서 공격
 Move_screen     # 스크린상에서 유닛움직임
@@ -129,4 +130,20 @@ banelings = [unit for unit in obs.observation.raw_units if unit.unit_type == uni
 target = sorted(enemys, key=lambda r: r.y)[0].tag
 ```
 우리는 이전에 위 코드로 y값이 가장적은 적을 골라냈습니다. 하지만 이 방법은 전혀 효과적이지 못합니다.  
-그렇기 때문에 가장 가까운 적을 공격하게 만들어 보면 어떨까요?
+그렇기 때문에 가장 가까운 적을 공격하게 만들어 보면 어떨까요?  
+또는 도망가면서 총을 쏘게 만들 수도 있습니다.
+```
+return RAW_FUNCTIONS.Move_pt("now", marines, [x, y])
+```
+위는 특정 좌표로 이동시키는 코드입니다.
+### mission
+1. 마린전체의 중심좌표를 구하고 x,y 좌표로 피타고라스로 가장 가까운 적을 공격하게 만들어봅시다!
+2. 마린각자가 가장 가까운 맹독충을 공격하게 만들어 봅시다!
+3. 마린이 도망가게 만들어봅시다.
+
+## step 5
+현재까지는 직접 알고리즘을 짜는 방법을 해봤습니다.  
+이제 실제 커스텀 강화학습 환경을 만들어 봅시다.
+- 참고하면 좋은 삼성 SDS에서 발표했던 스타크래프트 AI개발 세미나 중의 소규모 저글링과 마린의 교전에 강화학습을 적용한 사례를 스크랩했습니다.
+    - https://youtu.be/nXN3MLFYnsI?t=1187
+위에서 얻을수 있었던 state데이터를 가공해서 강화학습의 input으로 넣을 수 있는 모양으로 만들어 봅시다.
